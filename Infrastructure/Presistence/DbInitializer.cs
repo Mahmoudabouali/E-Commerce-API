@@ -1,6 +1,8 @@
 ﻿using Domain.Contracts;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Tokens;
 using Persistence.Data;
 using System;
 using System.Collections.Generic;
@@ -22,61 +24,54 @@ namespace Persistence
 
         public async Task InitializeAsync()
         {
-            try
+            // create database if it doesn't exist & apply any pending migration
+            if ((await _storeContext.Database.GetPendingMigrationsAsync()).Any())
+                await _storeContext.Database.MigrateAsync();
+
+
+            // apply data seeding
+            if (!_storeContext.ProductTypes.Any())
             {
-                //create db if it doesn't exist & appling any pending migration
-                if (_storeContext.Database.GetPendingMigrations().Any())
-                    await _storeContext.Database.MigrateAsync();
+                // read types from file as string
+                var typesData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\types.json");
 
-                if (!_storeContext.ProductTypes.Any())
+                // transform into C# objects
+                var Types = JsonSerializer.Deserialize<List<ProductType>>(typesData);
+                if(Types is not null && Types.Any())
                 {
-                    // read types from file as string
-                    var typeData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\types.json");
-                    // tranfare into c# objects
-                    var types = JsonSerializer.Deserialize<List<ProductType>>(typeData);
-                    // add db & saveChanges
-                    if (types is null && types.Any())
-                    {
-                        await _storeContext.ProductTypes.AddRangeAsync(types);
-                        await _storeContext.SaveChangesAsync();
-                    }
+                    await _storeContext.ProductTypes.AddRangeAsync(Types);
+                    await _storeContext.SaveChangesAsync();
                 }
-                if (!_storeContext.ProductBrands.Any())
-                {
-                    // read types from file as string
-                    var brandData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\brands.json");
-                    // tranfare into c# objects
-                    var brands = JsonSerializer.Deserialize<List<ProductBrand>>(brandData);
-                    // add db & saveChanges
-                    if (brands is null && brands.Any())
-                    {
-                        await _storeContext.ProductBrands.AddRangeAsync(brands);
-                        await _storeContext.SaveChangesAsync();
-                    }
-                }
-                if (!_storeContext.Products.Any())
-                {
-                    // read types from file as string
-                    var productData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\products.json");
-                    // tranfare into c# objects
-                    var products = JsonSerializer.Deserialize<List<Product>>(productData);
-                    // add db & saveChanges
-                    if (products is null && products.Any())
-                    {
-                        await _storeContext.Products.AddRangeAsync(products);
-                        await _storeContext.SaveChangesAsync();
-                    }
-                }
-
             }
-            catch (Exception)
+            if (!_storeContext.ProductBrands.Any())
             {
+                // read types from file as string
+                var brandsData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\brands.json");
 
-                throw;
+                // transform into C# objects
+                var Brands = JsonSerializer.Deserialize<List<ProductBrand>>(brandsData);
+                if (Brands is not null && Brands.Any())
+                {
+                    await _storeContext.ProductBrands.AddRangeAsync(Brands);
+                    await _storeContext.SaveChangesAsync();
+                }
+            }
+            if (!_storeContext.Products.Any())
+            {
+                // read types from file as string
+                var productData = await File.ReadAllTextAsync(@"..\Infrastructure\Presistence\Data\Seeding\products.json");
+
+                // transform into C# objects
+                var Products = JsonSerializer.Deserialize<List<Product>>(productData);
+                if (Products is not null && Products.Any())
+                {
+                    await _storeContext.Products.AddRangeAsync(Products);
+                    await _storeContext.SaveChangesAsync();
+                }
             }
         }
     }
 }
-
-
-//..\Infrastructure\Presistence\Data\Seeding\
+// \Infrastructure\Presistence\Data\Seeding\types.json`
+// \Infrastructure\Presistence\Data\Seeding\brands.json
+// \Infrastructure\Presistence\Data\Seeding\products.json
