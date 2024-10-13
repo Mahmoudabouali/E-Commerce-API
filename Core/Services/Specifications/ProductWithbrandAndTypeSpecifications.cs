@@ -1,5 +1,6 @@
 ﻿using Domain.Contracts;
 using Domain.Entities;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,35 +19,36 @@ namespace Services.Specifications
             AddInclude(product => product.ProductType);
         }
         //use to get all products
-        public ProductWithbrandAndTypeSpecifications(string? sort, int? brandId,int? typeId) 
+        public ProductWithbrandAndTypeSpecifications(ProductSpecificationPrameters prameters) 
             : base(product => 
-            (!brandId.HasValue || product.BrandId == brandId.Value)&&
-            (!typeId.HasValue || product.TypeId == typeId.Value))
+            (!prameters.BrandId.HasValue || product.BrandId == prameters.BrandId.Value)&&
+            (!prameters.TypeId.HasValue || product.TypeId == prameters.TypeId.Value)&&
+            (string.IsNullOrWhiteSpace(prameters.Search) || product.Name.ToLower().Contains(prameters.Search.ToLower().Trim())))
         {
             AddInclude(product => product.ProductBrand);
             AddInclude(product => product.ProductType);
 
-            if (!string.IsNullOrWhiteSpace(sort))
+            ApplyPagination(prameters.PageIndex,prameters.PageSize);
+            if (prameters.sort is not null)
             {
-                switch (sort.ToLower().Trim()) 
+                switch (prameters.sort) 
                 {
-                    case "pricedesc":
+                    case ProductSortingOptions.PriceDesc:
                         SetOrderByDescending(p => p.Price);
                         break;
-                    case "priceasc":
+                    case ProductSortingOptions.PriceAsc:
                         SetOrderBy(p => p.Price);
                         break;
-                    case "namedesc":
+                    case ProductSortingOptions.NameDesc:
+                        SetOrderByDescending(p => p.Name);
+                        break;
+                    case ProductSortingOptions.NameAsc:
                         SetOrderByDescending(p => p.Name);
                         break;
                     default:
-                        SetOrderBy(p => p.Name);
                         break;
                 }
             }
-
-
-
         }
     }
 }
