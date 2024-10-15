@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities
 {
-    internal class CustomerBasket
+    public class CustomerBasket
     {
+        public string Id { get; set; } //=> PK
+        public IEnumerable<BasketItem> Items { get; set; }
     }
 }
