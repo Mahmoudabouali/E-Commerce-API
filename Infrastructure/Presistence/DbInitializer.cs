@@ -1,5 +1,6 @@
 ﻿using Domain.Contracts;
 using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
@@ -16,10 +17,16 @@ namespace Persistence
     public class DbInitializer : IDbInitializer
     {
         private readonly StoreContext _storeContext;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public DbInitializer(StoreContext storeContext)
+        public DbInitializer(StoreContext storeContext,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _storeContext = storeContext;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public async Task InitializeAsync()
@@ -69,6 +76,41 @@ namespace Persistence
                     await _storeContext.SaveChangesAsync();
                 }
             }
+        }
+
+        public async Task InitializeIdentityAsync()
+        {
+            // seed default roles
+            if (!_roleManager.Roles.Any())
+            {
+                await _roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+            // seed default users
+            if (!_userManager.Users.Any())
+            {
+                var superAdminUser = new User
+                {
+                    DisplayName = "super Admin User",
+                    Email = "superAdminUser@gmail.com",
+                    UserName = "superAdminUser",
+                    PhoneNumber = "123456789",
+                };
+                var adminUser = new User
+                {
+                    DisplayName = "admin User",
+                    Email = "adminUser@gmail.com",
+                    UserName = "adminUser",
+                    PhoneNumber = "123456789",
+                };
+
+                await _userManager.CreateAsync(superAdminUser, "Passw0rd");
+                await _userManager.CreateAsync(adminUser, "Passw0rd");
+
+                await _userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+                await _userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+
         }
     }
 }

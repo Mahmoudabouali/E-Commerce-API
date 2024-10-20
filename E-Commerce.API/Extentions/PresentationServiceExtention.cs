@@ -5,6 +5,7 @@ using Persistence.Repositories;
 using Persistence;
 using E_Commerce.API.Factories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 namespace E_Commerce.API.Extentions
 {
@@ -20,8 +21,41 @@ namespace E_Commerce.API.Extentions
                 option.InvalidModelStateResponseFactory = ApiResponseFactory.CustomValdationErrorResponse;
             });
 
+            services.ConfigureSwagger();
+            //services.AddEndpointsApiExplorer();
+            //services.AddSwaggerGen();
+            return services;
+        }
+        public static IServiceCollection ConfigureSwagger(this IServiceCollection services)
+        {
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(options=>
+            {
+                options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "please enter bearer token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT"
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                     new OpenApiSecurityScheme
+                     {
+                         Reference = new OpenApiReference
+                         {
+                             Type = ReferenceType.SecurityScheme,
+                             Id = "Bearer"
+                         }
+                     },
+                     new List<string>(){ }
+                    }
+
+                });
+            });
             return services;
         }
     }

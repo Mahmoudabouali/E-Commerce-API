@@ -21,7 +21,7 @@ namespace E_Commerce.API
 
             // Add services to the DI container. 
 
-            builder.Services.AddCoreServices();
+            builder.Services.AddCoreServices(builder.Configuration);
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddPresentationServices();
 
@@ -43,6 +43,7 @@ namespace E_Commerce.API
             }
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

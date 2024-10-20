@@ -52,21 +52,30 @@ namespace E_Commerce.API.Middlewares
 
             // set content type => Apllication/json
             httpContext.Response.ContentType = "application/json";
-            
-//pattern matching 
+
+            var response = new ErrorDetails
+            {
+                ErrorMessage = exception.Message
+            };
+            //pattern matching 
             httpContext.Response.StatusCode = exception switch
             {
                 NotFoundException => (int)HttpStatusCode.NotFound,
+                UnAuthorizedException => (int)HttpStatusCode.Unauthorized,
+                ValidationException validationException => HandleValidationException(validationException,response),
+
                 _ => (int)HttpStatusCode.InternalServerError
             };
             //return standerd response
-            var response = new ErrorDetails
-            {
-                StatusCode = httpContext.Response.StatusCode,
-                ErrorMessage = exception.Message
-            }.ToString();
+            response.StatusCode = httpContext.Response.StatusCode;
 
-            await httpContext.Response.WriteAsync(response);
+            await httpContext.Response.WriteAsync(response.ToString());
+        }
+
+        private int HandleValidationException(ValidationException validationException, ErrorDetails response)
+        {
+            response.Errors = validationException.Errors;
+            return (int)HttpStatusCode.BadRequest;
         }
     }
 }

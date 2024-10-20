@@ -11,6 +11,7 @@ namespace E_Commerce.API.Extentions
             var dbInitialize = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
 
             await dbInitialize.InitializeAsync();
+            await dbInitialize.InitializeIdentityAsync();
             return app;
         }
         public static WebApplication UseCustomExceptionMiddleware(this WebApplication app)
