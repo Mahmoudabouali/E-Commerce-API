@@ -6,9 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.Entities.Identity
 {
-    public class User :IdentityUser
+    public class User : IdentityUser
     {
         public string DisplayName { get; set; }
         public Address Address { get; set; } // ref navigational property

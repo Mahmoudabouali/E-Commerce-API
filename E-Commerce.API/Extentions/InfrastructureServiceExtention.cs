@@ -7,12 +7,12 @@ using Persistence;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using Persistence.identity;
-using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Domain.Entities.Identity;
 
 namespace E_Commerce.API.Extentions
 {
